@@ -1,0 +1,138 @@
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="initial-scale=1, maximum-scale=1, user-scalable=no">
+  <title>Bence Nagy - population of California</title>
+  <style>
+    html, body, #viewDiv {
+      padding: 0;
+      margin: 0;
+      height: 100%;
+      width: 100%;
+    }
+  </style>
+  <link rel="stylesheet" href="https://js.arcgis.com/4.19/esri/themes/light/main.css">
+  <script src="https://js.arcgis.com/4.19/"></script>
+
+  <script>
+  require([
+  "esri/Color",
+        "esri/dijit/Legend",
+        "esri/dijit/PopupTemplate",
+        "esri/layers/FeatureLayer",
+        "esri/map",
+        "esri/renderers/ClassBreaksRenderer",
+        "esri/symbols/SimpleFillSymbol",
+        "esri/symbols/SimpleMarkerSymbol",
+
+        "dojo/domReady!",
+        "esri/config"
+      ],
+      function (Color, Legend, PopupTemplate, FeatureLayer,
+        Map, ClassBreaksRenderer, SimpleFillSymbol, SimpleMarkerSymbol, esriConfig) {
+
+  esriConfig.apiKey = "AAPK752a51245e0645d2b93622118b205343XHuFsT8ixerSxVLTW1HebFGAg2P2lfb1p5KlMhMkGVPJYGOABOAfHrtQVJk0VHr1";
+
+  const map = new Map({
+    basemap: "arcgis-topographic"
+  });
+  const countyRenderer = {
+        type: "simple",
+        symbol: {
+          color: "rgba(210,210,210,0.4)",
+          type: "simple-fill",
+          style: "solid"
+        }
+    }
+  var rendererField = "POPULATION";
+
+  var renderer = new ClassBreaksRenderer();
+  renderer.attributeField = rendererField;
+
+  //symbology for centroids
+  var markerSymbol = new SimpleMarkerSymbol();
+  markerSymbol.setColor(new Color([255,101,59, 1]));
+  markerSymbol.setSize(12);
+  markerSymbol.outline.setColor(new Color(20,20,20,1));
+  markerSymbol.outline.setWidth(1);
+
+  renderer.addBreak({
+    minValue: -9007199254740991,
+    maxValue: 9007199254740991,
+    symbol: markerSymbol
+  })
+
+  renderer.setVisualVariables([
+          // (3.A) This visual variable determines the size of circle marker
+          // for each polygon based on the value of its attribute field.
+          {
+            type: "sizeInfo",
+            field: rendererField,
+            minDataValue: 0,
+            maxDataValue: 11000000,
+            valueUnit: "unknown",
+
+            // The SMALLEST marker size at any given map scale is determined by
+            // minSize specification.
+
+            minSize: {
+              type: "sizeInfo",
+              expression: "view.scale",
+              stops: [
+                {value: 1128, size: 16},
+                {value: 144447, size: 16},
+                {value: 18489298, size: 4},
+                {value: 147914382, size: 4},
+                {value: 591657528, size: 2}
+              ]
+            },
+
+            // The LARGEST marker size at any given map scale is determined by
+            // maxSize specification.
+
+            maxSize: {
+              type: "sizeInfo",
+              expression: "view.scale",
+              stops: [
+                {value: 1128, size: 80},
+                {value: 144447, size: 80},
+                {value: 18489298, size: 50},
+                {value: 147914382, size: 50},
+                {value: 591657528, size: 25}
+              ]
+            }
+          }
+    ]);
+
+  const view = new MapView({
+    container: "viewDiv",
+    map: map,
+    center: [-105.80543,38.02700],
+    zoom: 5
+  });
+  const popup = {
+    "title" : "Popup for age classes",
+    "content" : "<b>From age 10 to 14: </b> {AGE_10_14}<br><b>From age 15 to 19: </b> {AGE_15_19}<br><b>From age 20 to 24: </b> {AGE_20_24}<br><b>From age 25 to 34: </b>{AGE_25_34}<br> <b>From age 35 to 44: </b>{AGE_35_44}<br> <b>From age 45 to 54: </b>{AGE_45_54}<br><b>From age 55 to 64: </b> {AGE_55_64}<br><b>From age 65 to 74: </b> {AGE_65_74}<br><b>From age 75 to 84: </b> {AGE_75_84}<br><b>Above age 85: </b> {AGE_85_up}"
+  }
+  USACounties = new FeatureLayer({
+    url: "https://services.arcgis.com/P3ePLMYs2RVChkJx/ArcGIS/rest/services/USA_Counties_Generalized/FeatureServer/0",
+    definitionExpression: "STATE_NAME = 'California'",
+    //renderer: countyRenderer, 
+    outFields: ["AGE_10_14", "AGE_15_19", "AGE_20_24", "AGE_25_34", "AGE_35_44", "AGE_45_54", "AGE_55_64", "AGE_65_74", "AGE_75_84", "AGE_85_UP"],
+    popupTemplate: popup
+  });
+
+  USACounties.setRenderer(countyRenderer, renderer);
+
+
+  map.add(USACounties, 0);
+  });
+
+      
+</script>
+
+</head>
+<body>
+  <div id="viewDiv"></div>
+</body>
+</html>
